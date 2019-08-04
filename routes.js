@@ -19,20 +19,23 @@
 
 'use strict';
 
-var express = require('express');
-var router = express.Router();
+var router = require('express').Router();
 var models = require('./models');
 
-// TODO: Show spreadsheets on the main page.
-router.get('/', function(req, res, next) {
-  models.collections()
-  .then(function(collections) {
+const wrap = fn => (req, res, next) =>
+  Promise
+    .resolve(fn(req, res, next))
+    .catch(next)
+
+const collectionList = async (req, res) => {
+    let collections = await models.collections.list();
+    console.log("Rendering collections")
     res.render('index', {
-      collections: collections
+        collections: collections
     });
-  }, function(err) {
-    next(err);
-  });
-});
+};
+
+// TODO: Show spreadsheets on the main page.
+router.get('/', wrap(collectionList))
 
 module.exports = router;
